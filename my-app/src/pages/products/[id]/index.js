@@ -105,13 +105,13 @@ export default function product({ productDetails }) {
 }
 
 export async function getStaticPaths() {
-  const res = await fetch(`https://dummyjson.com/products?limit=10`);
-  const data = await res.json();
-  const products = data.products;
+  const res = await fetch(`http://localhost:3000/api/products`);
+  const { data } = await res.json();
+  const products = data;
   const paths = products.map((product) => {
     return {
       params: {
-        id: product.id.toString(),
+        id: product._id.toString(),
       },
     };
   });
@@ -123,7 +123,7 @@ export async function getStaticPaths() {
 
 export async function getStaticProps(context) {
   const { id } = context.params;
-  const res = await fetch(`https://dummyjson.com/products/${id}`);
+  const res = await fetch(`http://localhost:3000/api/products/${id}`);
   const data = await res.json();
   const productDetails = data;
   return {

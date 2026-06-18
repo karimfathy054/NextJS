@@ -1,7 +1,9 @@
+import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 export default function Navbar() {
   const router = useRouter();
+  const { data: session } = useSession();
   return (
     <nav className="navbar navbar-expand-sm navbar-light bg-light">
       <div className="container">
@@ -47,6 +49,29 @@ export default function Navbar() {
                 Quotes
               </Link>
             </li>
+            {session && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${router.pathname === "/products/create" ? "active" : ""}`}
+                  href="/products/create"
+                >
+                  Create Product
+                </Link>
+              </li>
+            )}
+            {!session ? (
+              <li className="nav-item">
+                <button className="btn btn-primary" onClick={() => signIn()}>
+                  Login
+                </button>
+              </li>
+            ) : (
+              <li className="nav-item">
+                <button className="btn btn-danger" onClick={() => signOut()}>
+                  Logout
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </div>

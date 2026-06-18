@@ -1,8 +1,13 @@
+import { getServerSession } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useDeferredValue, useTransition, useMemo } from "react";
+import { authOptions } from "../api/auth/[...nextauth]";
+import { useSession } from "next-auth/react";
 
-export default function products({ products }) {
+export default function Products({ products }) {
+  const { data: session } = useSession();
+  console.log(session);
   const [searchString, setSearchString] = useState("");
   const [category, setCategory] = useState("");
   const [sortBy, setSortBy] = useState("");
@@ -39,6 +44,14 @@ export default function products({ products }) {
   const handleSearch = (e) => {
     startTransition(() => {
       setSearchString(e.target.value);
+    });
+  };
+
+  const handleDelete = (id) => {
+    startTransition(async () => {
+      await fetch(`http://localhost:3000/api/products/${id}`, {
+        method: "DELETE",
+      });
     });
   };
 
@@ -104,11 +117,27 @@ export default function products({ products }) {
                 </div>
                 <div className="card-footer">
                   <Link
-                    href={`/products/${product.id}`}
+                    href={`/products/${product._id}`}
                     className="btn btn-primary"
                   >
                     View Details
                   </Link>
+                  {session && (
+                    <>
+                      <Link
+                        href={`/products/${product._id}/edit`}
+                        className="btn btn-primary"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(product._id)}
+                        className="btn btn-danger"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -119,10 +148,12 @@ export default function products({ products }) {
   );
 }
 
-export async function getServerSideProps() {
-  const res = await fetch("https://dummyjson.com/products?limit=50");
-  const data = await res.json();
-  const products = data.products;
+export async function getServerSideProps(context) {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  const res = await fetch("http://localhost:3000/api/products");
+  const jsonResponse = await res.json();
+  const products = !session ? jsonResponse.data.slice(0, 3) : jsonResponse.data;
+
   return {
     props: {
       products,
